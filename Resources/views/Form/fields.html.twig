@@ -1,0 +1,60 @@
+{#
+
+This file is part of the Netstar Form Schema package.
+
+(c) Gleb Tiltikov <gleb@netstar.od.ua>
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+
+#}
+
+{% block master_entity_widget %}
+{% spaceless %}
+    <select {{ block('widget_attributes') }}{% if multiple %} multiple="multiple"{% endif %}>
+        {% if empty_value is not none %}
+            <option value="">{{ empty_value|trans({}, translation_domain) }}</option>
+        {% endif %}
+        {% if preferred_choices|length > 0 %}
+            {% set options = preferred_choices %}
+            {{ block('choice_widget_options') }}
+            {% if choices|length > 0 and separator is not none %}
+                <option disabled="disabled">{{ separator }}</option>
+            {% endif %}
+        {% endif %}
+        {% set options = choices %}
+        {{ block('choice_widget_options') }}
+    </select>
+{% endspaceless %}
+
+<script type="text/javascript">
+	$(document).ready(function(){
+    	$('select.{{ form_relation.master }}_related_form_{{ form_relation.id }}').change(function(){
+    		{% for slave in form_relation.getSlaves() %}
+        		$('select.{{ slave }}_related_form_{{ form_relation.id }}').children().remove();
+        		$('select.{{ slave }}_related_form_{{ form_relation.id }}').change();
+        	{% endfor %}
+			
+        	if($(this).val() == '' || $(this).val() == 0 || $(this).val() == null) return;
+        	
+        	$.ajax({
+            	url: Routing.generate('related_forms_retrieve_data', {ident: '{{ form_relation.id }}', data: $(this).val()})
+            }).done(function(regions) {
+            	/*$('select.district1_select').append($("<option></option>").attr("value", '').text(''));*/
+            	
+            	var new_select = $('<select>');
+            	
+                $.each(JSON.parse(regions), function(index, value) {
+                	new_select.append(new Option(value, index));
+                });
+
+                {% for slave in form_relation.getSlaves() %}
+                	$('select.{{ slave }}_related_form_{{ form_relation.id }}').html(new_select.html());
+                {% endfor %}
+
+           	});
+      	});
+	});
+</script>
+
+{% endblock %}

@@ -1,0 +1,96 @@
+{#
+
+This file is part of the Netstar Form Schema package.
+
+(c) Gleb Tiltikov <gleb@netstar.od.ua>
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+
+#}
+
+{% if netstar_form_schema_sonata_filters is defined %}
+
+	{% macro netstarFormSchema(filter) %}
+		{% spaceless %}
+
+				{
+						id: '{{ filter.id }}',
+						value: '{{ filter.value }}',
+						title: '{{ filter.title }}',
+						items: [
+							{% if filter.items %}
+			   					{% for subitem in filter.items %}
+			    					{{ _self.netstarFormSchema(subitem) }}
+			    				{% endfor %}
+			    			{% endif %}
+						]
+					
+					},
+	
+		{% endspaceless %}
+	{% endmacro %}
+
+	{% macro processEvent(filter, index) %}
+		{% spaceless %}
+
+					$('#filter_{{ filter.id }}_value').change(function(){
+						netstar_form_schema_process_filter(netstarFormSchema_{{ index }}, '{{ filter.id }}', $(this).val())
+					});
+					
+					{% if filter.items[0] is defined %}
+						{{ _self.processEvent(filter.items[0], index) }}
+					{% endif %}
+	
+		{% endspaceless %}
+	{% endmacro %}
+	
+	<script type="text/javascript">
+		{% for filters in netstar_form_schema_sonata_filters %}
+			var netstarFormSchema_{{ loop.index }} = [
+				{% for filter in filters %}
+					{{ _self.netstarFormSchema(filter) }}
+				{% endfor %}
+    		];
+		{% endfor %}
+		
+		$(document).ready(function(){
+			{% for filters in netstar_form_schema_sonata_filters %}
+				
+				{{ _self.processEvent(filters[0], loop.index) }}
+				
+				$('#filter_{{ filters[0].id }}_value').change();
+			{% endfor %}
+		});
+		
+		
+		function netstar_form_schema_process_filter(schema, id, value){
+			$.each( schema, function( key, item ){
+				if(item.items.length > 0){
+					if(item.id == id && item.value == value) netstar_form_schema_update(item.items);
+					else netstar_form_schema_process_filter(item.items, id, value);
+				}
+			});
+		}
+		
+		function netstar_form_schema_update(items){
+			var is_cleared = false;
+			var default_value = null;
+			
+			$.each( items, function( key, item ){
+				if(!is_cleared) {
+					default_value = {id: item.id, value: $('#filter_' + item.id + '_value').val()};
+					$('#filter_' + item.id + '_value').html('');
+					is_cleared = true;
+				}
+				$('#filter_' + item.id + '_value').append(new Option(item.title, item.value));
+			});
+			
+			if(default_value !== null) $('#filter_' + default_value.id + '_value').val(default_value.value).attr('selected', true);
+			
+			$('#filter_' + default_value.id + '_value').change();
+		}
+		
+	</script>
+
+{% endif %}
