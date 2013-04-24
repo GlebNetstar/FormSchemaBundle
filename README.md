@@ -132,6 +132,19 @@ Known issues
 ------------
 
  - In Sonata, if object with relation is using as collection, problem with label field translation in dev environment.
+ 
+ Now to solve this issue, you have to override SonataDoctrineORMAdminBundle by creating for example ApplicationSonataDoctrineORMAdminBundle.
+ 
+ Then make changes at config.yml :
+``` php
+ sonata_doctrine_orm_admin:
+    templates:
+        form:
+            - ApplicationSonataDoctrineORMAdminBundle:Form:form_admin_fields.html.twig 
+```
+ and create override template DoctrineORMAdminBundle / Resources / views / CRUD / edit_orm_one_to_many.html.twig
+ string number with error you can see in Symfony 2 debug page.
+
 
 
 TODO
