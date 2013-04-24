@@ -142,8 +142,8 @@ Known issues
         form:
             - ApplicationSonataDoctrineORMAdminBundle:Form:form_admin_fields.html.twig 
 ```
- and create override template DoctrineORMAdminBundle / Resources / views / CRUD / edit_orm_one_to_many.html.twig
- string number with error you can see in Symfony 2 debug page.
+ and create and override template DoctrineORMAdminBundle / Resources / views / CRUD / edit_orm_one_to_many.html.twig
+ then modify string; number with error you can see in Symfony 2 debug page.
 
 
 
